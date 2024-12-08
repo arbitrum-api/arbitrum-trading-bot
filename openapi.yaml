@@ -1,0 +1,509 @@
+openapi: 3.0.0
+info:
+  title: Arbitrum API
+  description: API for interacting with the Arbitrum blockchain, including block information, token transfers, transaction history, gas prices, liquidity, and market data.
+  version: 1.1.0
+  contact:
+    name: Support Team
+    email: support@arbitrum-api.co
+    url: https://arbitrum-api.co/support
+
+servers:
+  - url: https://arbitrum-api.co/api/v1
+    description: Main API server
+
+paths:
+  /block/{block_number}:
+    get:
+      summary: Get Block Info
+      description: Retrieve detailed information about a specific block in the Arbitrum blockchain.
+      parameters:
+        - name: block_number
+          in: path
+          required: true
+          description: The block number to retrieve information for.
+          schema:
+            type: integer
+            example: 123456
+      responses:
+        200:
+          description: Block information successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blockNumber:
+                    type: integer
+                    example: 123456
+                  timestamp:
+                    type: integer
+                    example: 1622547800
+                  transactions:
+                    type: integer
+                    example: 12
+                  miner:
+                    type: string
+                    example: "0xabc123...xyz"
+        404:
+          description: Block not found.
+        500:
+          description: Internal server error.
+
+  /transfer:
+    post:
+      summary: Transfer Token
+      description: Send a transaction to transfer tokens on the Arbitrum network. You need to sign the transaction with your private key.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from:
+                  type: string
+                  description: Sender's address.
+                  example: "0xYourAddressHere"
+                to:
+                  type: string
+                  description: Receiver's address.
+                  example: "0xReceiverAddressHere"
+                amount:
+                  type: string
+                  description: Amount to transfer.
+                  example: "10"
+                token:
+                  type: string
+                  description: Token contract address.
+                  example: "0xTokenAddressHere"
+                private_key:
+                  type: string
+                  description: Private key to sign the transaction.
+                  example: "0xYourPrivateKeyHere"
+      responses:
+        200:
+          description: Token transfer successfully executed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  transactionHash:
+                    type: string
+                    example: "0xabc123...xyz"
+        400:
+          description: Bad request (e.g., invalid address, amount).
+        500:
+          description: Internal server error.
+
+  /transfer-mnemonic:
+    post:
+      summary: Transfer via Mnemonic
+      description: Send a transaction using a mnemonic phrase for account recovery and signing transactions.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mnemonic:
+                  type: string
+                  description: Mnemonic phrase to recover the wallet.
+                  example: "pencil apple river music dolphin mirror lantern wave tiger ocean puzzle"
+                to:
+                  type: string
+                  description: Receiver's address.
+                  example: "0xReceiverAddressHere"
+                amount:
+                  type: string
+                  description: Amount to transfer.
+                  example: "10"
+                token:
+                  type: string
+                  description: Token contract address.
+                  example: "0xTokenAddressHere"
+      responses:
+        200:
+          description: Token transfer successfully executed using mnemonic.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  transactionHash:
+                    type: string
+                    example: "0xabc123...xyz"
+        400:
+          description: Bad request (e.g., invalid mnemonic, address, or amount).
+        500:
+          description: Internal server error.
+
+  /token-balance:
+    get:
+      summary: Get Token Balance
+      description: Fetch the balance of a specific token for a given address.
+      parameters:
+        - name: address
+          in: query
+          required: true
+          description: Address to check the balance for.
+          schema:
+            type: string
+            example: "0xYourAddressHere"
+        - name: token
+          in: query
+          required: true
+          description: Token contract address to check the balance of.
+          schema:
+            type: string
+            example: "0xTokenAddressHere"
+      responses:
+        200:
+          description: Token balance successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: string
+                    example: "1000.00"
+        400:
+          description: Bad request (e.g., invalid address or token).
+        500:
+          description: Internal server error.
+
+  /transactions:
+    get:
+      summary: Get Transaction History
+      description: Retrieve the transaction history for a given address.
+      parameters:
+        - name: address
+          in: query
+          required: true
+          description: Address to retrieve the transaction history for.
+          schema:
+            type: string
+            example: "0xYourAddressHere"
+      responses:
+        200:
+          description: Transaction history successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        hash:
+                          type: string
+                        to:
+                          type: string
+                        amount:
+                          type: string
+                        status:
+                          type: string
+                          example: "success"
+        404:
+          description: No transactions found for the given address.
+        500:
+          description: Internal server error.
+
+  /gas-price:
+    get:
+      summary: Get Gas Price
+      description: Retrieve the current gas price for transactions on the Arbitrum network.
+      responses:
+        200:
+          description: Gas price successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gasPrice:
+                    type: string
+                    example: "0.0001"
+        500:
+          description: Internal server error.
+
+  /deploy-contract:
+    post:
+      summary: Deploy Smart Contract
+      description: Deploy a new smart contract to the Arbitrum network.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from:
+                  type: string
+                  description: Sender's address.
+                  example: "0xYourAddressHere"
+                bytecode:
+                  type: string
+                  description: Contract bytecode to deploy.
+                  example: "0xYourContractBytecodeHere"
+                private_key:
+                  type: string
+                  description: Private key to sign the deployment.
+                  example: "0xYourPrivateKeyHere"
+      responses:
+        200:
+          description: Smart contract deployed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  contractAddress:
+                    type: string
+                    example: "0xNewContractAddressHere"
+        400:
+          description: Bad request (e.g., invalid bytecode or address).
+        500:
+          description: Internal server error.
+
+  /token-liquidity:
+    get:
+      summary: Check Token Liquidity
+      description: Retrieve liquidity data for a token pair on a decentralized exchange.
+      parameters:
+        - name: token_1
+          in: query
+          required: true
+          description: The first token address to check liquidity for.
+          schema:
+            type: string
+            example: "0xTokenAddress1"
+        - name: token_2
+          in: query
+          required: true
+          description: The second token address to check liquidity for.
+          schema:
+            type: string
+            example: "0xTokenAddress2"
+      responses:
+        200:
+          description: Liquidity information successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  liquidity:
+                    type: string
+                    example: "5000.00"
+                  token1_reserve:
+                    type: string
+                    example: "3000.00"
+                  token2_reserve:
+                    type: string
+                    example: "2000.00"
+                  pair_address:
+                    type: string
+                    example: "0xLiquidityPoolAddress"
+        500:
+          description: Internal server error.
+
+  /token-price:
+    get:
+      summary: Get Token Price
+      description: Retrieve the current price of a token in USD or other currencies.
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: The token contract address to retrieve the price for.
+          schema:
+            type: string
+            example: "0xTokenAddressHere"
+      responses:
+        200:
+          description: Price information successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  price:
+                    type: string
+                    example: "0.25"
+                  currency:
+                    type: string
+                    example: "USDT"
+                  timestamp:
+                    type: integer
+                    example: 1622547800
+        500:
+          description: Internal server error.
+
+  /token-market-cap:
+    get:
+      summary: Get Market Cap
+      description: Retrieve the market cap of a token based on its price and circulating supply.
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: The token contract address to retrieve the market cap for.
+          schema:
+            type: string
+            example: "0xTokenAddressHere"
+      responses:
+        200:
+          description: Market cap information successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  market_cap:
+                    type: string
+                    example: "100000000"
+                  token_price:
+                    type: string
+                    example: "0.25"
+                  circulating_supply:
+                    type: string
+                    example: "400000000"
+        500:
+          description: Internal server error.
+
+  /arbitrage-opportunity:
+    get:
+      summary: Check Arbitrage Opportunity
+      description: Check for arbitrage opportunities between different DEXes for a token pair.
+      parameters:
+        - name: token_1
+          in: query
+          required: true
+          description: The first token address to check for arbitrage opportunities.
+          schema:
+            type: string
+            example: "0xTokenAddress1"
+        - name: token_2
+          in: query
+          required: true
+          description: The second token address to check for arbitrage opportunities.
+          schema:
+            type: string
+            example: "0xTokenAddress2"
+      responses:
+        200:
+          description: Arbitrage opportunity information successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_arbitrage_possible:
+                    type: boolean
+                    example: true
+                  profit_percentage:
+                    type: string
+                    example: "2.5"
+                  platform_1_price:
+                    type: string
+                    example: "0.20"
+                  platform_2_price:
+                    type: string
+                    example: "0.195"
+        500:
+          description: Internal server error.
+
+  /token-supply:
+    get:
+      summary: Get Token Supply
+      description: Retrieve the total and circulating supply of a token.
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: The token contract address to retrieve the supply data for.
+          schema:
+            type: string
+            example: "0xTokenAddressHere"
+      responses:
+        200:
+          description: Supply information successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_supply:
+                    type: string
+                    example: "1000000000"
+                  circulating_supply:
+                    type: string
+                    example: "500000000"
+        500:
+          description: Internal server error.
+
+  /gas-estimation:
+    get:
+      summary: Estimate Gas for Transaction
+      description: Estimate the gas required for a token transfer transaction.
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: The sender's address.
+          schema:
+            type: string
+            example: "0xSenderAddressHere"
+        - name: to
+          in: query
+          required: true
+          description: The receiver's address.
+          schema:
+            type: string
+            example: "0xReceiverAddressHere"
+        - name: amount
+          in: query
+          required: true
+          description: The amount to transfer.
+          schema:
+            type: string
+            example: "10"
+        - name: token
+          in: query
+          required: true
+          description: The token contract address.
+          schema:
+            type: string
+            example: "0xTokenAddressHere"
+      responses:
+        200:
+          description: Gas estimation successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gas_estimate:
+                    type: string
+                    example: "21000"
+                  gas_price:
+                    type: string
+                    example: "0.0001"
+        500:
+          description: Internal server error.
+
